@@ -1,0 +1,65 @@
+# General Configuration
+general:
+  dataset: shd
+  datasets_path: Datasets/SHD
+  gpu: 0
+  seed: 42
+  seed_list: [42, 43, 44, 45, 46]
+  backend: cupy
+  make_plot: false
+
+model:
+  model_name: sdt
+  spike_mode: lif
+
+  # SSC input
+  duration: 10
+  n_bins: 5
+
+  depths: 2
+  attention_window: 20
+  n_hidden_neurons: 128
+  n_hidden_neurons_list:
+    - 128
+
+  num_heads: 8
+  mlp_ratio: 1
+  dropout_l: 0.1
+  dropout_p: 0.1
+  attn_mode: v2
+  kernel_size: 31
+  bias: true
+
+  # spiking neuron
+  init_tau: 2.0
+  v_threshold: 1.0
+  v_reset: 0.0
+  surrogate_function_type: atan
+  alpha: 5.0
+  detach_reset: true
+
+modules:
+  use_dw_bias: false
+
+augmentation:
+  use_aug: true
+
+  # SpecAugment (SHD)
+  TN_mask_aug_proba: 0.5
+  time_mask_proportion: 0.2
+  neuron_mask_size: 20
+
+training:
+  epochs: 300
+  batch_size: 256
+  keep_ratio: 1.0
+  loss: sum
+  loss_fn: CEloss
+  early_stop: false
+  early_stop_metric: acc
+  
+optimization:
+  optimizer_w: adamw
+  lr_w: 0.005
+  weight_decay: 0.01
+  t_max: 40

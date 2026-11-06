@@ -1,0 +1,53 @@
+# General Configuration
+general:
+  dataset: ncaltech101
+  datasets_path: Datasets/NCaltech101
+  gpu: 0
+  seed: 42
+  seed_list: [42, 43, 44, 45, 46]
+  backend: cupy
+  make_plot: true
+
+model:
+  model_name: spikingformer
+  spike_mode: lif
+
+  depths: 2
+  num_heads: 16
+  time_steps: 16
+
+  # spiking neuron
+  init_tau: 2.0
+  v_threshold: 1.0
+  v_reset: 0.5
+  surrogate_function_type: atan
+  alpha: 5.0
+  detach_reset: true
+
+modules:
+  use_dw_bias: false
+
+augmentation:
+  use_aug: true
+  mixup_off_epoch: 75
+  mixup: 0.5
+  cutmix: 0.0
+  cutmix_minmax: None
+  mixup_prob: 0.5
+  mixup_switch_prob: 0.5
+  mixup_mode: "batch"
+  smoothing: 0.1
+
+training:
+  epochs: 96
+  batch_size: 16
+  keep_ratio: 1.0
+  loss: none
+  loss_fn: CEloss
+  warmup_epochs: 10
+
+optimization:
+  optimizer_w: adamw
+  lr_w: 0.005
+  weight_decay: 0.06
+  t_max: 40
