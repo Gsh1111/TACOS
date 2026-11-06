@@ -17,9 +17,9 @@ from typing import Dict, Optional, List
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
+
 def convert_config_dict(config_dict):
-    """This function convert the str parameters to their original type.
-    """
+    """This function convert the str parameters to their original type."""
     for key in config_dict:
         param = config_dict[key]
         if not isinstance(param, str):
@@ -46,17 +46,21 @@ def read_configuration(config_file):
     # read configuration from yaml file
     yaml_loader = yaml.FullLoader
     yaml_loader.add_implicit_resolver(
-        u'tag:yaml.org,2002:float',
-        re.compile(u'''^(?:
+        "tag:yaml.org,2002:float",
+        re.compile(
+            """^(?:
                  [-+]?(?:[0-9][0-9_]*)\\.[0-9_]*(?:[eE][-+]?[0-9]+)?
                 |[-+]?(?:[0-9][0-9_]*)(?:[eE][-+]?[0-9]+)
                 |\\.[0-9_]+(?:[eE][-+][0-9]+)?
                 |[-+]?[0-9][0-9_]*(?::[0-5]?[0-9])+\\.[0-9_]*
                 |[-+]?\\.(?:inf|Inf|INF)
-                |\\.(?:nan|NaN|NAN))$''', re.X),
-        list(u'-+0123456789.'))
+                |\\.(?:nan|NaN|NAN))$""",
+            re.X,
+        ),
+        list("-+0123456789."),
+    )
 
-    with open(config_file, 'r') as f:
+    with open(config_file, "r") as f:
         yaml_config_dict = yaml.load(f.read(), Loader=yaml_loader)
 
     # read configuration from cmd line
@@ -69,7 +73,9 @@ def read_configuration(config_file):
                 continue
             cmd_arg_name, cmd_arg_value = arg[2:].split("=")
             if cmd_arg_name in cmd_config_dict and cmd_arg_value != cmd_config_dict[cmd_arg_name]:
-                raise SyntaxError("There are duplicate commend arg '%s' with different value." % arg)
+                raise SyntaxError(
+                    "There are duplicate commend arg '%s' with different value." % arg
+                )
             else:
                 cmd_config_dict[cmd_arg_name] = cmd_arg_value
     if len(unrecognized_args) > 0:
@@ -86,7 +92,7 @@ def read_configuration(config_file):
 
 
 def check_versions():
-    python_version = sys.version .split(' ')[0]
+    python_version = sys.version.split(" ")[0]
     print("============== Checking Packages versions ================")
     print(f"python {python_version}")
     print(f"numpy {np.__version__}")
@@ -105,8 +111,9 @@ def set_seed(seed):
 
 def get_local_time():
     cur = datetime.now()
-    cur = cur.strftime('%b-%d-%Y_%H-%M-%S')
+    cur = cur.strftime("%b-%d-%Y_%H-%M-%S")
     return cur
+
 
 def init_logger(config, run_type: str, filename: str = "train.log"):
     """Log to the console and the run-specific log file without duplicating handlers."""
@@ -115,12 +122,10 @@ def init_logger(config, run_type: str, filename: str = "train.log"):
 
     logfilepath = os.path.join(log_dir, filename)
 
-    
     logger = getLogger("training")
     logger.setLevel(logging.INFO)
     logger.propagate = False
 
-    
     if logger.handlers:
         for h in list(logger.handlers):
             logger.removeHandler(h)
@@ -156,70 +161,65 @@ def init_logger(config, run_type: str, filename: str = "train.log"):
     return logger
 
 
-def build_optimizer(config,model):
-    if config.optimizer_w == 'adam':
+def build_optimizer(config, model):
+    if config.optimizer_w == "adam":
         # optimizer = optim.Adam(model.parameters(), lr = config.lr_w, betas=(0.9,0.999),weight_decay=config.weight_decay)
         optimizer = optim.Adam(model.parameters(), lr=config.lr_w, betas=(0.9, 0.999))
-    elif config.optimizer_w == 'adamw':
+    elif config.optimizer_w == "adamw":
         # optimizer = optim.AdamW(model.parameters(), lr=config.lr_w, betas=(0.9, 0.999),weight_decay=config.weight_decay)
-        optimizer = optim.AdamW(model.parameters(), lr=config.lr_w, betas=(0.9, 0.999), weight_decay=config.weight_decay) # weight_decay default 1e-2
+        optimizer = optim.AdamW(
+            model.parameters(), lr=config.lr_w, betas=(0.9, 0.999), weight_decay=config.weight_decay
+        )  # weight_decay default 1e-2
     return optimizer
 
 
 def calc_loss(config, output, y):
     """Calculate loss based on model type"""
 
-    if config.loss == 'mean':
+    if config.loss == "mean":
         m = torch.mean(output, 0)
-    elif config.loss == 'max':
+    elif config.loss == "max":
         m, _ = torch.max(output, 0)
-    elif config.loss == 'spike_count':
+    elif config.loss == "spike_count":
         m = torch.sum(output, 0)
-    elif config.loss == 'sum':
+    elif config.loss == "sum":
         softmax_fn = nn.Softmax(dim=2)
         m = torch.sum(softmax_fn(output), 0)
 
-    if config.loss_fn == 'CEloss':
+    if config.loss_fn == "CEloss":
         return nn.CrossEntropyLoss()(m, y)
 
 
 def calc_metric(config, output, y):
     """Calculate accuracy metric"""
-    
-    if config.loss == 'mean':
+
+    if config.loss == "mean":
         m = torch.mean(output, 0)
-    elif config.loss == 'max':
+    elif config.loss == "max":
         m, _ = torch.max(output, 0)
-    elif config.loss == 'spike_count':
+    elif config.loss == "spike_count":
         m = torch.sum(output, 0)
-    elif config.loss == 'sum':
+    elif config.loss == "sum":
         softmax_fn = nn.Softmax(dim=2)
         m = torch.sum(softmax_fn(output), 0)
-    elif config.loss == 'none':
+    elif config.loss == "none":
         m = output
-    
-    if y.ndim > 1:                        
-        target_idx = y.argmax(dim=-1)     
-    else:
-        target_idx = y                    
 
-    
-    pred_idx = m.argmax(dim=-1)                # (B,)
+    if y.ndim > 1:
+        target_idx = y.argmax(dim=-1)
+    else:
+        target_idx = y
+
+    pred_idx = m.argmax(dim=-1)  # (B,)
     acc = (pred_idx == target_idx).float().mean().item()
     return acc
-
-
 
 
 def _safe(s: str) -> str:
     """Make a string safe for filesystem paths."""
     s = str(s)
-    return (
-        s.replace(" ", "_")
-         .replace("/", "-")
-         .replace("\\", "-")
-         .replace(":", "-")
-    )
+    return s.replace(" ", "_").replace("/", "-").replace("\\", "-").replace(":", "-")
+
 
 def _fmt_ratio(r: float, ndigits: int = 2) -> str:
     # r0.50 / r1.00 style
@@ -228,33 +228,32 @@ def _fmt_ratio(r: float, ndigits: int = 2) -> str:
 
 def _layer_tag(layer: int) -> str:
     # -1 => emb, else L{idx}
-    return "emb" if int(layer) == -1 else f"L{int(layer)}"
+    if int(layer) == -1:
+        return "emb"
+    else:
+        return f"L{int(layer)}"
 
 
-def make_output_dirs(
-    config,
-    base_tag: str,  
-    seed: int,
-    base_dir: str = "runs"
-) -> Dict[str, str]:
+def make_output_dirs(config, base_tag: str, seed: int, base_dir: str = "runs") -> Dict[str, str]:
     """Create per-run output directories grouped by dataset, model, configuration and seed."""
     dataset = _safe(str(getattr(config, "dataset", "data")).lower())
     model = _safe(str(getattr(config, "model_name", "model")))
 
     drop_on = bool(getattr(config, "drop_sequence", False))
 
-    
     seed_folder = f"seed={int(seed)}"
     time_steps_folder = f"time_steps={int(config.time_steps)}"
-    
-    
-    timestamp = base_tag.split("__")[-1] if "__" in base_tag else base_tag
+
+    if "__" in base_tag:
+        timestamp = base_tag.split("__")[-1]
+    else:
+        timestamp = base_tag
     ts_folder = _safe(timestamp)
 
     if not drop_on:
         parts = [
-            base_dir, 
-            dataset, 
+            base_dir,
+            dataset,
             model,
             time_steps_folder,
             "no_drop",
@@ -284,8 +283,8 @@ def make_output_dirs(
             win_folder = "win=NAN"
 
         parts = [
-            base_dir, 
-            dataset, 
+            base_dir,
+            dataset,
             model,
             time_steps_folder,
             "drop",
@@ -315,6 +314,7 @@ def make_output_dirs(
 
     return dirs
 
+
 def log_drop_config(logger, config):
     """Log the temporal pruning configuration."""
     drop_on = bool(getattr(config, "drop_sequence", False))
@@ -330,7 +330,10 @@ def log_drop_config(logger, config):
 
     if target == "feature":
         layer = int(getattr(config, "drop_after_layer", -1))
-        after = "emb" if layer == -1 else f"L{layer}"
+        if layer == -1:
+            after = "emb"
+        else:
+            after = f"L{layer}"
     else:
         after = "NAN"
 
@@ -351,7 +354,7 @@ def log_drop_config(logger, config):
     logger.info(f"  ratio={ratio:.3f}")
     logger.info(f"  score={score}")
     logger.info(f"  {win_tag}")
-    
+
 
 def accuracy(output, target, topk=(1,)):
     """Computes the accuracy over the k top predictions for the specified values of k"""

@@ -4,14 +4,14 @@ from typing import Tuple
 
 
 class Transpose(nn.Module):
-    """ Wrapper class of torch.permute() for Sequential module. """
+    """Wrapper class of torch.permute() for Sequential module."""
+
     def __init__(self, *dims):
         super(Transpose, self).__init__()
         self.dims = dims
 
     def forward(self, x: Tensor) -> Tensor:
         return x.permute(*self.dims)
-
 
 
 class DepthwiseConv1d(nn.Module):
@@ -33,18 +33,21 @@ class DepthwiseConv1d(nn.Module):
     Returns: outputs
         - **outputs** (batch, out_channels, time): Tensor produces by depthwise 1-D convolution.
     """
+
     def __init__(
-            self,
-            in_channels: int,
-            out_channels: int,
-            kernel_size: int,
-            stride: int = 1,
-            padding: int = 0,
-            dilation: int = 1,
-            bias: bool = False,
+        self,
+        in_channels: int,
+        out_channels: int,
+        kernel_size: int,
+        stride: int = 1,
+        padding: int = 0,
+        dilation: int = 1,
+        bias: bool = False,
     ) -> None:
         super(DepthwiseConv1d, self).__init__()
-        assert out_channels % in_channels == 0, "out_channels should be constant multiple of in_channels"
+        assert out_channels % in_channels == 0, (
+            "out_channels should be constant multiple of in_channels"
+        )
         self.conv = nn.Conv1d(
             in_channels=in_channels,
             out_channels=out_channels,
@@ -58,7 +61,6 @@ class DepthwiseConv1d(nn.Module):
 
     def forward(self, inputs: Tensor) -> Tensor:
         return self.conv(inputs)
-
 
 
 class DepthwiseConv2d(nn.Module):
@@ -81,6 +83,7 @@ class DepthwiseConv2d(nn.Module):
     Returns:
         - **outputs** (batch, out_channels, height_out, width_out): Output tensor
     """
+
     def __init__(
         self,
         in_channels: int,
@@ -107,6 +110,7 @@ class DepthwiseConv2d(nn.Module):
     def forward(self, inputs: Tensor) -> Tensor:
         return self.conv(inputs)
 
+
 class PointwiseConv1d(nn.Module):
     """
     When kernel size == 1 conv1d, this operation is termed in literature as pointwise convolution.
@@ -125,13 +129,14 @@ class PointwiseConv1d(nn.Module):
     Returns: outputs
         - **outputs** (batch, out_channels, time): Tensor produces by pointwise 1-D convolution.
     """
+
     def __init__(
-            self,
-            in_channels: int,
-            out_channels: int,
-            stride: int = 1,
-            padding: int = 0,
-            bias: bool = True,
+        self,
+        in_channels: int,
+        out_channels: int,
+        stride: int = 1,
+        padding: int = 0,
+        bias: bool = True,
     ) -> None:
         super(PointwiseConv1d, self).__init__()
         self.conv = nn.Conv1d(
@@ -164,12 +169,13 @@ class ConformerConvModule(nn.Module):
     Outputs: outputs
         outputs (batch, time, dim): Tensor produces by conformer convolution module.
     """
+
     def __init__(
-            self,
-            in_channels: int,
-            kernel_size: int = 31,
-            expansion_factor: int = 2,
-            dropout_p: float = 0.1,
+        self,
+        in_channels: int,
+        kernel_size: int = 31,
+        expansion_factor: int = 2,
+        dropout_p: float = 0.1,
     ) -> None:
         super(ConformerConvModule, self).__init__()
         assert (kernel_size - 1) % 2 == 0, "kernel_size should be a odd number for 'SAME' padding"
@@ -178,9 +184,13 @@ class ConformerConvModule(nn.Module):
         self.sequential = nn.Sequential(
             nn.LayerNorm(in_channels),
             Transpose(shape=(1, 2)),
-            PointwiseConv1d(in_channels, in_channels * expansion_factor, stride=1, padding=0, bias=True),
+            PointwiseConv1d(
+                in_channels, in_channels * expansion_factor, stride=1, padding=0, bias=True
+            ),
             # GLU(dim=1),
-            DepthwiseConv1d(in_channels, in_channels, kernel_size, stride=1, padding=(kernel_size - 1) // 2),
+            DepthwiseConv1d(
+                in_channels, in_channels, kernel_size, stride=1, padding=(kernel_size - 1) // 2
+            ),
             nn.BatchNorm1d(in_channels),
             # Swish(),
             PointwiseConv1d(in_channels, in_channels, stride=1, padding=0, bias=True),

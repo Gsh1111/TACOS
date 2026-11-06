@@ -67,7 +67,7 @@ class TimeNeurons_mask_aug(object):
             mask_size = int(self.config.time_mask_proportion * x.shape[0])
             if mask_size > 0 and x.shape[0] > mask_size:
                 ind = np.random.randint(0, x.shape[0] - mask_size)
-                x[ind:ind + mask_size, :] = 0
+                x[ind : ind + mask_size, :] = 0
 
         # Neuron mask
         if np.random.uniform() < self.config.TN_mask_aug_proba:
@@ -75,7 +75,7 @@ class TimeNeurons_mask_aug(object):
             if max_mask > 0 and x.shape[1] > max_mask:
                 mask_size = np.random.randint(0, max_mask)
                 ind = np.random.randint(0, x.shape[1] - max_mask)
-                x[:, ind:ind + mask_size] = 0
+                x[:, ind : ind + mask_size] = 0
 
         return x, y
 
@@ -107,26 +107,26 @@ def SHD_dataloaders(config, dataset_seed=None):
             config.datasets_path,
             config.n_bins,
             train=True,
-            data_type='frame',
+            data_type="frame",
             duration=config.duration,
-            transform=augs
+            transform=augs,
         )
     else:
         train_dataset = BinnedSpikingHeidelbergDigits(
             config.datasets_path,
             config.n_bins,
             train=True,
-            data_type='frame',
+            data_type="frame",
             duration=config.duration,
-            transform=None
+            transform=None,
         )
 
     test_dataset = BinnedSpikingHeidelbergDigits(
         config.datasets_path,
         config.n_bins,
         train=False,
-        data_type='frame',
-        duration=config.duration
+        data_type="frame",
+        duration=config.duration,
     )
 
     train_loader = DataLoader(
@@ -134,7 +134,7 @@ def SHD_dataloaders(config, dataset_seed=None):
         collate_fn=pad_sequence_collate,
         batch_size=config.batch_size,
         shuffle=True,
-        num_workers=getattr(config, 'num_workers', 0),
+        num_workers=getattr(config, "num_workers", 0),
         pin_memory=True,
         worker_init_fn=seed_worker,
         generator=make_torch_generator(dataset_seed + 0),
@@ -145,7 +145,7 @@ def SHD_dataloaders(config, dataset_seed=None):
         collate_fn=pad_sequence_collate,
         batch_size=config.batch_size,
         shuffle=False,
-        num_workers=getattr(config, 'num_workers', 0),
+        num_workers=getattr(config, "num_workers", 0),
         pin_memory=True,
         worker_init_fn=seed_worker,
         generator=make_torch_generator(dataset_seed + 1),
@@ -163,19 +163,19 @@ def SSC_dataloaders(config, dataset_seed=None):
         train_dataset = BinnedSpikingSpeechCommands(
             config.datasets_path,
             config.n_bins,
-            split='train',
-            data_type='frame',
+            split="train",
+            data_type="frame",
             duration=config.duration,
-            transform=augs
+            transform=augs,
         )
     else:
         train_dataset = BinnedSpikingSpeechCommands(
             config.datasets_path,
             config.n_bins,
-            split='train',
-            data_type='frame',
+            split="train",
+            data_type="frame",
             duration=config.duration,
-            transform=None
+            transform=None,
         )
 
     # valid_dataset = BinnedSpikingSpeechCommands(
@@ -188,9 +188,9 @@ def SSC_dataloaders(config, dataset_seed=None):
     test_dataset = BinnedSpikingSpeechCommands(
         config.datasets_path,
         config.n_bins,
-        split='test',
-        data_type='frame',
-        duration=config.duration
+        split="test",
+        data_type="frame",
+        duration=config.duration,
     )
 
     train_loader = DataLoader(
@@ -198,7 +198,7 @@ def SSC_dataloaders(config, dataset_seed=None):
         collate_fn=pad_sequence_collate,
         batch_size=config.batch_size,
         shuffle=True,
-        num_workers=getattr(config, 'num_workers', 0),
+        num_workers=getattr(config, "num_workers", 0),
         pin_memory=True,
         worker_init_fn=seed_worker,
         generator=make_torch_generator(dataset_seed + 0),
@@ -220,7 +220,7 @@ def SSC_dataloaders(config, dataset_seed=None):
         collate_fn=pad_sequence_collate,
         batch_size=config.batch_size,
         shuffle=False,
-        num_workers=getattr(config, 'num_workers', 0),
+        num_workers=getattr(config, "num_workers", 0),
         pin_memory=True,
         worker_init_fn=seed_worker,
         generator=make_torch_generator(dataset_seed + 2),
@@ -228,6 +228,7 @@ def SSC_dataloaders(config, dataset_seed=None):
 
     # return train_loader, valid_loader, test_loader
     return train_loader, None, test_loader
+
 
 # =========================================================
 # SHD dataset wrappers
@@ -238,7 +239,7 @@ class BinnedSpikingHeidelbergDigits(SpikingHeidelbergDigits):
         root: str,
         n_bins: int,
         train: bool = None,
-        data_type: str = 'event',
+        data_type: str = "event",
         frames_number: int = None,
         split_by: str = None,
         duration: int = None,
@@ -248,33 +249,42 @@ class BinnedSpikingHeidelbergDigits(SpikingHeidelbergDigits):
         target_transform: Optional[Callable] = None,
     ) -> None:
         super().__init__(
-            root, train, data_type, frames_number, split_by, duration,
-            custom_integrate_function, custom_integrated_frames_dir_name,
-            transform, target_transform
+            root,
+            train,
+            data_type,
+            frames_number,
+            split_by,
+            duration,
+            custom_integrate_function,
+            custom_integrated_frames_dir_name,
+            transform,
+            target_transform,
         )
         self.n_bins = n_bins
 
     def __getitem__(self, index: int):
-        if self.data_type == 'event':
+        if self.data_type == "event":
             events = {
-                't': self.h5_file['spikes']['times'][index],
-                'x': self.h5_file['spikes']['units'][index]
+                "t": self.h5_file["spikes"]["times"][index],
+                "x": self.h5_file["spikes"]["units"][index],
             }
-            label = self.h5_file['labels'][index]
+            label = self.h5_file["labels"][index]
 
             if self.transform is not None:
                 events, label = self.transform(events, label)
 
             return events, label
 
-        elif self.data_type == 'frame':
-            frames = np.load(self.frames_path[index], allow_pickle=True)['frames'].astype(np.float32)
+        elif self.data_type == "frame":
+            frames = np.load(self.frames_path[index], allow_pickle=True)["frames"].astype(
+                np.float32
+            )
             label = self.frames_label[index]
 
             binned_len = frames.shape[1] // self.n_bins
             binned_frames = np.zeros((frames.shape[0], binned_len), dtype=np.float32)
             for t in range(binned_len):
-                binned_frames[:, t] = frames[:, self.n_bins * t: self.n_bins * (t + 1)].sum(axis=1)
+                binned_frames[:, t] = frames[:, self.n_bins * t : self.n_bins * (t + 1)].sum(axis=1)
 
             if self.transform is not None:
                 binned_frames, label = self.transform(binned_frames, label)
@@ -290,8 +300,8 @@ class BinnedSpikingSpeechCommands(SpikingSpeechCommands):
         self,
         root: str,
         n_bins: int,
-        split: str = 'train',
-        data_type: str = 'event',
+        split: str = "train",
+        data_type: str = "event",
         frames_number: int = None,
         split_by: str = None,
         duration: int = None,
@@ -301,33 +311,42 @@ class BinnedSpikingSpeechCommands(SpikingSpeechCommands):
         target_transform: Optional[Callable] = None,
     ) -> None:
         super().__init__(
-            root, split, data_type, frames_number, split_by, duration,
-            custom_integrate_function, custom_integrated_frames_dir_name,
-            transform, target_transform
+            root,
+            split,
+            data_type,
+            frames_number,
+            split_by,
+            duration,
+            custom_integrate_function,
+            custom_integrated_frames_dir_name,
+            transform,
+            target_transform,
         )
         self.n_bins = n_bins
 
     def __getitem__(self, index: int):
-        if self.data_type == 'event':
+        if self.data_type == "event":
             events = {
-                't': self.h5_file['spikes']['times'][index],
-                'x': self.h5_file['spikes']['units'][index]
+                "t": self.h5_file["spikes"]["times"][index],
+                "x": self.h5_file["spikes"]["units"][index],
             }
-            label = self.h5_file['labels'][index]
+            label = self.h5_file["labels"][index]
 
             if self.transform is not None:
                 events, label = self.transform(events, label)
 
             return events, label
 
-        elif self.data_type == 'frame':
-            frames = np.load(self.frames_path[index], allow_pickle=True)['frames'].astype(np.float32)
+        elif self.data_type == "frame":
+            frames = np.load(self.frames_path[index], allow_pickle=True)["frames"].astype(
+                np.float32
+            )
             label = self.frames_label[index]
 
             binned_len = frames.shape[1] // self.n_bins
             binned_frames = np.zeros((frames.shape[0], binned_len), dtype=np.float32)
             for t in range(binned_len):
-                binned_frames[:, t] = frames[:, self.n_bins * t: self.n_bins * (t + 1)].sum(axis=1)
+                binned_frames[:, t] = frames[:, self.n_bins * t : self.n_bins * (t + 1)].sum(axis=1)
 
             if self.transform is not None:
                 binned_frames, label = self.transform(binned_frames, label)
@@ -361,7 +380,9 @@ class NTIDIGITS(VisionDataset):
         download: bool = True,
         duration: float = 1.0,
     ) -> None:
-        super(NTIDIGITS, self).__init__(root, transform=transform, target_transform=target_transform)
+        super(NTIDIGITS, self).__init__(
+            root, transform=transform, target_transform=target_transform
+        )
         self.train = train
         self.duration = duration
 
@@ -369,11 +390,14 @@ class NTIDIGITS(VisionDataset):
             self.download()
 
         if not self._check_exists():
-            raise RuntimeError('Dataset not found. You can use download=True to download it')
+            raise RuntimeError("Dataset not found. You can use download=True to download it")
 
-        data_file = self.training_file if self.train else self.test_file
+        if self.train:
+            data_file = self.training_file
+        else:
+            data_file = self.test_file
 
-        with open(os.path.join(self.processed_folder, data_file), 'rb') as pickled_file:
+        with open(os.path.join(self.processed_folder, data_file), "rb") as pickled_file:
             self.data, self.targets = torch.load(pickled_file)
 
     def __getitem__(self, index: int):
@@ -392,25 +416,24 @@ class NTIDIGITS(VisionDataset):
 
     @property
     def training_file(self):
-        return f'training{int(self.duration)}.pt'
+        return f"training{int(self.duration)}.pt"
 
     @property
     def test_file(self):
-        return f'test{int(self.duration)}.pt'
+        return f"test{int(self.duration)}.pt"
 
     @property
     def raw_folder(self):
-        return os.path.join(self.root, 'raw')
+        return os.path.join(self.root, "raw")
 
     @property
     def processed_folder(self):
-        return os.path.join(self.root, 'processed')
+        return os.path.join(self.root, "processed")
 
     def _check_exists(self) -> bool:
-        return (
-            os.path.exists(os.path.join(self.processed_folder, self.training_file)) and
-            os.path.exists(os.path.join(self.processed_folder, self.test_file))
-        )
+        return os.path.exists(
+            os.path.join(self.processed_folder, self.training_file)
+        ) and os.path.exists(os.path.join(self.processed_folder, self.test_file))
 
     def download(self):
         if self._check_exists():
@@ -419,37 +442,51 @@ class NTIDIGITS(VisionDataset):
         os.makedirs(self.raw_folder, exist_ok=True)
         os.makedirs(self.processed_folder, exist_ok=True)
 
-        download_url(self.resource, root=self.raw_folder, filename='n-tidigits.hdf5')
+        download_url(self.resource, root=self.raw_folder, filename="n-tidigits.hdf5")
 
-        print('Processing...')
+        print("Processing...")
 
-        training_set = self.read_event_audio_files(os.path.join(self.raw_folder, 'n-tidigits.hdf5'), True)
-        test_set = self.read_event_audio_files(os.path.join(self.raw_folder, 'n-tidigits.hdf5'), False)
+        training_set = self.read_event_audio_files(
+            os.path.join(self.raw_folder, "n-tidigits.hdf5"), True
+        )
+        test_set = self.read_event_audio_files(
+            os.path.join(self.raw_folder, "n-tidigits.hdf5"), False
+        )
 
-        with open(os.path.join(self.processed_folder, self.training_file), 'wb') as f:
+        with open(os.path.join(self.processed_folder, self.training_file), "wb") as f:
             torch.save(training_set, f)
-        with open(os.path.join(self.processed_folder, self.test_file), 'wb') as f:
+        with open(os.path.join(self.processed_folder, self.test_file), "wb") as f:
             torch.save(test_set, f)
 
-        print('Done!')
+        print("Done!")
 
     def extra_repr(self):
-        return "Split: {}".format("Train" if self.train is True else "Test")
+        if self.train is True:
+            return "Split: Train"
+        return "Split: Test"
 
     def read_event_audio_files(self, path: str, train: bool):
-        ntidigits = h5py.File(path, 'r')
-        dataset_group = 'train' if train else 'test'
+        ntidigits = h5py.File(path, "r")
+        if train:
+            dataset_group = "train"
+        else:
+            dataset_group = "test"
         spikes_array, labels_list = [], []
         image_time = 1000.0
         number_of_timesteps = int(image_time / self.duration)
 
         bins = np.arange(0.0, image_time, self.duration, dtype=np.int16)
 
-        for sample_key in ntidigits[dataset_group + '_addresses']:
-            suffix = sample_key.rpartition('-')[2]
-            if len(suffix) == 1 and (suffix.isdigit() or suffix == 'z'):
-                neuron_indexes = torch.from_numpy(ntidigits[dataset_group + '_addresses'][sample_key][...])
-                timestamps_ms = torch.from_numpy(ntidigits[dataset_group + '_timestamps'][sample_key][...]) * 1000
+        for sample_key in ntidigits[dataset_group + "_addresses"]:
+            suffix = sample_key.rpartition("-")[2]
+            if len(suffix) == 1 and (suffix.isdigit() or suffix == "z"):
+                neuron_indexes = torch.from_numpy(
+                    ntidigits[dataset_group + "_addresses"][sample_key][...]
+                )
+                timestamps_ms = (
+                    torch.from_numpy(ntidigits[dataset_group + "_timestamps"][sample_key][...])
+                    * 1000
+                )
                 label = suffix
 
                 bin_indexes = torch.tensor(np.digitize(timestamps_ms, bins) - 1, dtype=torch.int32)
@@ -461,14 +498,17 @@ class NTIDIGITS(VisionDataset):
                 ).to_dense()
 
                 spikes_array.append(torch.where(spikes > 1, torch.ones_like(spikes), spikes))
-                labels_list.append(0 if label == 'z' else int(label))
+                if label == "z":
+                    labels_list.append(0)
+                else:
+                    labels_list.append(int(label))
 
         return spikes_array, torch.ByteTensor(labels_list)
 
 
 def ntidigits_collate_fn(batch):
     xs, ys = zip(*batch)
-    xs = torch.stack(xs, dim=0).float()   # (B, T, N)
+    xs = torch.stack(xs, dim=0).float()  # (B, T, N)
     ys = torch.tensor(ys, dtype=torch.long)
     x_len = torch.full((xs.size(0),), xs.size(1), dtype=torch.long)
     return xs, ys, x_len
@@ -484,7 +524,7 @@ def NTIDIGITS_dataloaders(config, dataset_seed=None):
         train_dataset = NTIDIGITS(
             root=config.datasets_path,
             train=True,
-            download=getattr(config, 'allow_download', False),
+            download=getattr(config, "allow_download", False),
             duration=config.duration,
             transform=augs,
         )
@@ -507,7 +547,7 @@ def NTIDIGITS_dataloaders(config, dataset_seed=None):
         train_dataset,
         batch_size=config.batch_size,
         shuffle=True,
-        num_workers=getattr(config, 'num_workers', 0),
+        num_workers=getattr(config, "num_workers", 0),
         pin_memory=True,
         collate_fn=ntidigits_collate_fn,
         worker_init_fn=seed_worker,
@@ -518,7 +558,7 @@ def NTIDIGITS_dataloaders(config, dataset_seed=None):
         test_dataset,
         batch_size=config.batch_size,
         shuffle=False,
-        num_workers=getattr(config, 'num_workers', 0),
+        num_workers=getattr(config, "num_workers", 0),
         pin_memory=True,
         collate_fn=ntidigits_collate_fn,
         worker_init_fn=seed_worker,

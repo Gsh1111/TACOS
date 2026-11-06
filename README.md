@@ -7,8 +7,8 @@ This guide runs TACOS training on CIFAR10-DVS and SHD. Run the commands from the
 The following environment uses Python 3.10 and the CUDA 12.8 PyTorch wheels. It requires a compatible NVIDIA driver.
 
 ```bash
-git clone https://github.com/Gsh1111/TACOS-main.git
-cd TACOS-main
+git clone https://github.com/Gsh1111/TACOS.git
+cd TACOS
 python3.10 -m venv .venv
 source .venv/bin/activate
 python -m pip install torch==2.10.0 torchvision==0.25.0 \
@@ -69,10 +69,4 @@ Training writes per-seed logs, resolved configuration files and checkpoints unde
 
 ```bash
 find "$RUNS/shd-spikescr-42/runs" -type f \( -name '*.log' -o -name '*.yaml' -o -name '*.pth' \)
-```
-
-To check the installation without training or loading a dataset, run the CPU checks. The JSON report records the command and exit status for each check.
-
-```bash
-python run_checks.py /tmp/tacos-checks.json
 ```

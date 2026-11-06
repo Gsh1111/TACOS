@@ -1,6 +1,6 @@
 import torch
 
-    
+
 def log_drop_event(log_state, context_name, x_len_before, x_len_after, T_before=None, T_after=None):
     """Print the header once and log each pruning event."""
     if not log_state["enabled"]:
@@ -37,7 +37,6 @@ def print_tensor_stats_before_drop(x, printed_flag=False):
         f"sparsity={((x == 0).float().mean() * 100):.1f}%"
     )
 
-    
     step_mean = x.float().abs().mean(dim=(1, 2))  # [T]
     max_val = step_mean.max().item() + 1e-8
 
@@ -58,16 +57,13 @@ def print_tensor_stats_after_drop(x, T_before, printed_flag=False):
         f"std={x.float().std():.4f}  "
         f"sparsity={((x == 0).float().mean() * 100):.1f}%"
     )
-    print(
-        f"[Drop] {T_before} → {T_after} steps  "
-        f"(dropped {T_before - T_after} / {T_before})"
-    )
-    print('=' * 60 + '\n')
+    print(f"[Drop] {T_before} → {T_after} steps  (dropped {T_before - T_after} / {T_before})")
+    print("=" * 60 + "\n")
 
 
 def ensure_drop_stats_initialized(module, T_before):
     """Initialize the per-step drop counters."""
-    if not hasattr(module, '_drop_count'):
+    if not hasattr(module, "_drop_count"):
         module._drop_count = torch.zeros(T_before, dtype=torch.long)
         module._drop_total = 0
         module._T_max = T_before
@@ -98,7 +94,7 @@ def update_drop_stats(module, kept_indices, batch_size):
 
 def print_accumulated_drop_stats(module):
     """Report the cumulative drop probability for each time step."""
-    if not hasattr(module, '_drop_count'):
+    if not hasattr(module, "_drop_count"):
         print("[Drop Stats] No observations")
         return
 
@@ -116,7 +112,12 @@ def print_accumulated_drop_stats(module):
         prob = cnt / total
         bar_len = int(prob * 30)
         bar = "█" * bar_len + "░" * (30 - bar_len)
-        flag = "  high" if prob > 0.7 else ("  low" if prob < 0.1 else "")
+        if prob > 0.7:
+            flag = "  high"
+        elif prob < 0.1:
+            flag = "  low"
+        else:
+            flag = ""
         print(f"  {t:>6}  {cnt:>8}  {prob:>8.1%}  {bar}{flag}")
 
     dropped_any = (module._drop_count > 0).sum().item()
@@ -127,7 +128,7 @@ def print_accumulated_drop_stats(module):
 
 def reset_drop_stats(module):
     """Reset the accumulated drop statistics."""
-    if hasattr(module, '_drop_count'):
+    if hasattr(module, "_drop_count"):
         module._drop_count.zero_()
         module._drop_total = 0
         module._batch_count = 0
